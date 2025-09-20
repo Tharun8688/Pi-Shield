@@ -1,6 +1,24 @@
+# Build outputs
 dist/
+build/
+
+# Node modules
 node_modules/
+
+# Wrangler
 .wrangler/
+
+# Environment variables
 .dev.vars
-worker-configuration.d.ts
 .env
+
+# Worker configuration
+worker-configuration.d.ts
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VS Code settings
+.vscode/
