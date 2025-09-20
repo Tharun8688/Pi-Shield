@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "01995da1-55b2-7b87-b5ff-51db85fa005a",
+  "main": "./src/worker/index.ts",
+  "compatibility_date": "2025-06-17",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "observability": {
+    "enabled": true
+  },
+  "upload_source_maps": true,
+  "assets": {
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "01995da1-55b2-7b87-b5ff-51db85fa005a",
+      "database_id": "01995da1-55b2-7b87-b5ff-51db85fa005a"
+    }
+  ],
+  "vars": {
+    "GOOGLE_GEMINI_API_KEY": "your_gemini_api_key_here",
+    "OPENAI_API_KEY": "your_openai_api_key_here",
+    "GOOGLE_CLOUD_VISION_API_KEY": "your_google_cloud_vision_api_key_here",
+    "MOCHA_USERS_SERVICE_API_URL": "your_mocha_users_service_api_url_here",
+    "MOCHA_USERS_SERVICE_API_KEY": "your_mocha_users_service_api_key_here"
+  }
+}

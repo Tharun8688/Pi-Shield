@@ -1,0 +1,225 @@
+import { useState } from 'react';
+import { Send, AlertTriangle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import type { AnalysisReport } from '@/shared/types';
+
+export default function TextAnalyzer() {
+  const [content, setContent] = useState('');
+  const [contentType, setContentType] = useState<'text' | 'article' | 'post' | 'news'>('text');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [result, setResult] = useState<AnalysisReport | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAnalyze = async () => {
+    if (!content.trim()) return;
+
+    setIsAnalyzing(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const response = await fetch('/api/analyze-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: content.trim(),
+          contentType,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Analysis failed');
+      }
+
+      const analysisResult = await response.json();
+      setResult(analysisResult);
+    } catch (err) {
+      console.error('Analysis error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during analysis');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'text-green-600';
+    if (score >= 50) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getScoreIcon = (score: number) => {
+    if (score >= 80) return <CheckCircle className="w-8 h-8 text-green-600" />;
+    if (score >= 50) return <AlertTriangle className="w-8 h-8 text-yellow-600" />;
+    return <XCircle className="w-8 h-8 text-red-600" />;
+  };
+
+  return (
+    <section id="analyzer" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Content Analyzer
+          </h2>
+          <p className="text-xl text-gray-600">
+            Paste any text, article, or social media post to analyze its credibility
+          </p>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-200/50">
+          {/* Content Type Selector */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Content Type
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {(['text', 'article', 'post', 'news'] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setContentType(type)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    contentType === type
+                      ? 'bg-blue-600 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Text Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">
+              Content to Analyze
+            </label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Paste the text, article, or social media post you want to analyze for misinformation..."
+              className="w-full h-40 p-4 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-700 placeholder-gray-400"
+              disabled={isAnalyzing}
+            />
+            <div className="flex justify-between items-center mt-2">
+              <span className="text-sm text-gray-500">
+                {content.length} characters
+              </span>
+              <span className="text-sm text-gray-500">
+                Minimum 10 characters required
+              </span>
+            </div>
+          </div>
+
+          {/* Analyze Button */}
+          <button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || content.trim().length < 10}
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-semibold text-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
+          >
+            {isAnalyzing ? (
+              <span className="flex items-center justify-center">
+                <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                Analyzing Content...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center">
+                <Send className="w-6 h-6 mr-3" />
+                Analyze Content
+              </span>
+            )}
+          </button>
+
+          {/* Error Display */}
+          {error && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-center">
+                <XCircle className="w-5 h-5 text-red-600 mr-3" />
+                <span className="text-red-800 font-medium">Analysis Error</span>
+              </div>
+              <p className="text-red-700 mt-2">{error}</p>
+            </div>
+          )}
+
+          {/* Results Display */}
+          {result && (
+            <div className="mt-8 space-y-6">
+              {/* Credibility Score */}
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-2xl border border-blue-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-gray-800">Credibility Score</h3>
+                  {getScoreIcon(result.credibilityScore)}
+                </div>
+                <div className="flex items-end space-x-4">
+                  <span className={`text-5xl font-bold ${getScoreColor(result.credibilityScore)}`}>
+                    {result.credibilityScore}
+                  </span>
+                  <span className="text-gray-600 text-xl font-medium mb-2">/100</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+                  <div
+                    className={`h-3 rounded-full transition-all duration-1000 ${
+                      result.credibilityScore >= 80
+                        ? 'bg-gradient-to-r from-green-500 to-green-600'
+                        : result.credibilityScore >= 50
+                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                        : 'bg-gradient-to-r from-red-500 to-red-600'
+                    }`}
+                    style={{ width: `${result.credibilityScore}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Analysis */}
+              <div className="bg-white p-6 rounded-2xl border border-gray-200">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Detailed Analysis</h3>
+                <p className="text-gray-700 leading-relaxed">{result.analysis}</p>
+              </div>
+
+              {/* Flags */}
+              {result.flags.length > 0 && (
+                <div className="bg-red-50 p-6 rounded-2xl border border-red-200">
+                  <h3 className="text-xl font-bold text-red-800 mb-4 flex items-center">
+                    <AlertTriangle className="w-6 h-6 mr-3" />
+                    Warning Flags
+                  </h3>
+                  <ul className="space-y-2">
+                    {result.flags.map((flag, index) => (
+                      <li key={index} className="flex items-start">
+                        <span className="text-red-600 mr-2">•</span>
+                        <span className="text-red-800">{flag}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Recommendations */}
+              <div className="bg-blue-50 p-6 rounded-2xl border border-blue-200">
+                <h3 className="text-xl font-bold text-blue-800 mb-4 flex items-center">
+                  <CheckCircle className="w-6 h-6 mr-3" />
+                  Verification Recommendations
+                </h3>
+                <ul className="space-y-3">
+                  {result.recommendations.map((recommendation, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-blue-600 mr-2">✓</span>
+                      <span className="text-blue-800">{recommendation}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Reasoning */}
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">AI Reasoning</h3>
+                <p className="text-gray-700 leading-relaxed">{result.reasoning}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
