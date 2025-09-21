@@ -20,7 +20,7 @@ import apiRoutes from './routes.js';
 app.use(apiRoutes);
 
 // Fallback for SPA (so React Router works)
-app.get("*", (req, res) => {
+app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "../dist", "index.html"));
 });
 
