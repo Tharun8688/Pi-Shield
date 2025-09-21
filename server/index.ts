@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 10001; // default to 10001 locally to avoid local port conflicts
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +22,7 @@ if (!clientBuildPath) {
 }
 
 console.log(`Serving client from: ${clientBuildPath}`);
+console.log(`Server will listen on port: ${PORT}`);
 
 // Parse JSON bodies for API routes
 app.use(express.json());
