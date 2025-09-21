@@ -13,15 +13,12 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
-// Serve the React build folder
+// Serve static files
 app.use(express.static(path.join(__dirname, "../dist")));
 
-import apiRoutes from './routes.js';
-app.use(apiRoutes);
-
-// Fallback for SPA (so React Router works)
-app.get("/*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../dist", "index.html"));
+// ✅ Fallback: regex works in Express 5
+app.get(/.*/, (_, res) => {
+  res.sendFile(path.join(__dirname, "../dist/index.html"));
 });
 
 app.listen(PORT, () => {
