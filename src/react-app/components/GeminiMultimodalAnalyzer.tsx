@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE_URL } from '../config';
 import { Upload, FileImage, FileVideo, FileAudio, FileText, AlertTriangle, CheckCircle, XCircle, Loader2, Sparkles, Brain } from 'lucide-react';
 import type { AnalysisReport } from '../../shared/types';
 
@@ -99,7 +100,7 @@ export default function GeminiMultimodalAnalyzer() {
         formData.append(contentType, selectedFile);
       }
 
-      const response = await fetch('/api/analyze-multimodal', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze-multimodal`, {
         method: 'POST',
         body: formData,
       });
@@ -138,6 +139,13 @@ export default function GeminiMultimodalAnalyzer() {
       case 'audio': return <FileAudio className="w-5 h-5" />;
       case 'text': return <FileText className="w-5 h-5" />;
     }
+  };
+
+  const getWidthClass = (score: number) => {
+    // Map percentage score to a Tailwind width class. Tailwind supports w-0 ... w-96 and percentage via w-[xx%]
+    // We will use the arbitrary value syntax w-[<n>%]
+    const pct = Math.max(0, Math.min(100, Math.round(score)));
+    return `w-[${pct}%]`;
   };
 
   return (
@@ -365,17 +373,17 @@ export default function GeminiMultimodalAnalyzer() {
                   </span>
                   <span className="text-gray-600 text-xl font-medium mb-2">/100</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
-                  <div
-                    className={`h-3 rounded-full transition-all duration-1000 w-[${result.credibilityScore}%] ${
-                      result.credibilityScore >= 80
-                        ? 'bg-gradient-to-r from-green-500 to-green-600'
-                        : result.credibilityScore >= 50
-                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
-                        : 'bg-gradient-to-r from-red-500 to-red-600'
-                    }`}
-                  />
-                </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+                            <div
+                              className={`h-3 rounded-full transition-all duration-1000 ${getWidthClass(result.credibilityScore)} ${
+                                result.credibilityScore >= 80
+                                  ? 'bg-gradient-to-r from-green-500 to-green-600'
+                                  : result.credibilityScore >= 50
+                                  ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                                  : 'bg-gradient-to-r from-red-500 to-red-600'
+                              }`}
+                            />
+                          </div>
               </div>
 
               {/* Extracted Text (if available) */}

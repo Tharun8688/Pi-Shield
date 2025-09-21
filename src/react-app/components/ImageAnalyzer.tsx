@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Upload, Image as ImageIcon, Send, AlertTriangle, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
 import type { AnalysisReport } from '@/shared/types';
+import { API_BASE_URL } from '@/react-app/config';
 
 export default function ImageAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -67,7 +68,7 @@ export default function ImageAnalyzer() {
       const formData = new FormData();
       formData.append('image', selectedFile);
 
-      const response = await fetch('/api/extract-text', {
+  const response = await fetch(`${API_BASE_URL}/api/extract-text`, {
         method: 'POST',
         body: formData,
       });
@@ -98,7 +99,7 @@ export default function ImageAnalyzer() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/analyze-text', {
+  const response = await fetch(`${API_BASE_URL}/api/analyze-text`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
