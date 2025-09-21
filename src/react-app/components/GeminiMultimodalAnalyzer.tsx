@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Upload, FileImage, FileVideo, FileAudio, FileText, AlertTriangle, CheckCircle, XCircle, Loader2, Sparkles, Brain } from 'lucide-react';
-import type { AnalysisReport } from '@/shared/types';
+import type { AnalysisReport } from '../../shared/types';
 
 type ContentType = 'text' | 'image' | 'video' | 'audio';
 
-interface AnalysisResult extends AnalysisReport {
+type AnalysisResult = AnalysisReport & {
   extractedText?: string;
   technicalFindings?: string;
   aiModel?: string;
   filename?: string;
-}
+};
 
 export default function GeminiMultimodalAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -106,7 +106,7 @@ export default function GeminiMultimodalAnalyzer() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
+        throw new Error(errorData.details || errorData.error || 'Analysis failed');
       }
 
       const analysisResult = await response.json();
@@ -367,14 +367,13 @@ export default function GeminiMultimodalAnalyzer() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
                   <div
-                    className={`h-3 rounded-full transition-all duration-1000 ${
+                    className={`h-3 rounded-full transition-all duration-1000 w-[${result.credibilityScore}%] ${
                       result.credibilityScore >= 80
                         ? 'bg-gradient-to-r from-green-500 to-green-600'
                         : result.credibilityScore >= 50
                         ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
                         : 'bg-gradient-to-r from-red-500 to-red-600'
                     }`}
-                    style={{ width: `${result.credibilityScore}%` }}
                   />
                 </div>
               </div>
