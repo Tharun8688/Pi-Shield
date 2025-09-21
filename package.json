@@ -47,12 +47,9 @@
     "wrangler": "^4.33.0"
   },
   "scripts": {
-    "build": "vite build && tsc --project tsconfig.server.json",
-    "cf-typegen": "wrangler types",
-    "check": "tsc && vite build && wrangler deploy --dry-run",
-    "dev": "vite --force",
-    "lint": "eslint .",
+    "build": "tsc --project tsconfig.server.json",
     "start": "node dist/server/index.js",
-    "start:server": "ts-node server/index.ts"
+    "dev": "ts-node server/index.ts",
+    "postinstall": "npm run build"
   }
 }
