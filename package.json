@@ -2,6 +2,7 @@
   "name": "mocha-app",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "dependencies": {
     "@firebase/auth-compat": "^0.6.0",
     "@firebase/database-compat": "^2.1.0",

@@ -16,7 +16,7 @@ app.use(express.json());
 // Serve the React build folder
 app.use(express.static(path.join(__dirname, "../dist")));
 
-import apiRoutes from './routes';
+import apiRoutes from './routes.js';
 app.use(apiRoutes);
 
 // Fallback for SPA (so React Router works)
