@@ -47,7 +47,7 @@
     "wrangler": "^4.33.0"
   },
   "scripts": {
-    "build": "vite build && tsc --project tsconfig.server.json",
+    "build": "rm -rf dist && vite build && tsc --project tsconfig.server.json",
     "start": "node dist/server/index.js",
     "prestart": "npm run build"
   }
