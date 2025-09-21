@@ -47,6 +47,7 @@
     "wrangler": "^4.33.0"
   },
   "scripts": {
+    "build": "echo \"No build required\"",
     "start": "ts-node server/index.ts",
     "dev": "ts-node server/index.ts"
   }
