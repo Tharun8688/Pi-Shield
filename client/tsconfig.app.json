@@ -13,9 +13,9 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*", "client/src/*"],
-      "@/react-app/*": ["src/react-app/*", "client/src/react-app/*"],
-      "@/shared/*": ["src/shared/*", "shared/*"]
+      "@/*": ["src/*", "../src/*"],
+      "@/react-app/*": ["src/react-app/*", "../src/react-app/*"],
+      "@/shared/*": ["src/shared/*", "../src/shared/*", "../shared/*"]
     }
   },
   "include": ["src"]

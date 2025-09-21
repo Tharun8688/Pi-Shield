@@ -6,7 +6,17 @@ import { fetchWithAuth } from '@/react-app/utils/api';
 export default function VideoAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [videoMetadata, setVideoMetadata] = useState<any>(null);
+  type VideoMetadata = {
+    duration?: string | number;
+    resolution?: string;
+    frameRate?: number | string;
+    format?: string;
+    codec?: string;
+    creationDate?: string;
+    [key: string]: unknown;
+  } | null;
+
+  const [videoMetadata, setVideoMetadata] = useState<VideoMetadata>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [result, setResult] = useState<AnalysisReport | null>(null);
@@ -346,16 +356,24 @@ export default function VideoAnalyzer() {
                   <span className="text-gray-600 text-xl font-medium mb-2">/100</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
-                  <div
-                    className={`h-3 rounded-full transition-all duration-1000 ${
-                      result.credibilityScore >= 80
-                        ? 'bg-gradient-to-r from-green-500 to-green-600'
-                        : result.credibilityScore >= 50
-                        ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
-                        : 'bg-gradient-to-r from-red-500 to-red-600'
-                    }`}
-                    style={{ width: `${result.credibilityScore}%` }}
-                  />
+                  {(() => {
+                    const barColor = result.credibilityScore >= 80
+                      ? 'bg-gradient-to-r from-green-500 to-green-600'
+                      : result.credibilityScore >= 50
+                      ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                      : 'bg-gradient-to-r from-red-500 to-red-600';
+
+                    // Map score ranges to fixed Tailwind width classes to avoid inline styles
+                    const widthClass = result.credibilityScore >= 80
+                      ? 'w-4/5'
+                      : result.credibilityScore >= 50
+                      ? 'w-3/5'
+                      : 'w-1/3';
+
+                    return (
+                      <div className={`h-3 rounded-full transition-all duration-1000 ${barColor} ${widthClass}`} />
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -373,7 +391,7 @@ export default function VideoAnalyzer() {
                     Warning Flags
                   </h3>
                   <ul className="space-y-2">
-                    {result.flags.map((flag, index) => (
+                    {result.flags.map((flag: string, index: number) => (
                       <li key={index} className="flex items-start">
                         <span className="text-red-600 mr-2">•</span>
                         <span className="text-red-800">{flag}</span>
@@ -390,8 +408,8 @@ export default function VideoAnalyzer() {
                   Verification Recommendations
                 </h3>
                 <ul className="space-y-3">
-                  {result.recommendations.map((recommendation, index) => (
-                    <li key={index} className="flex items-start">
+                  {result.recommendations.map((recommendation: string, index: number) => (
+                      <li key={index} className="flex items-start">
                       <span className="text-blue-600 mr-2">✓</span>
                       <span className="text-blue-800">{recommendation}</span>
                     </li>

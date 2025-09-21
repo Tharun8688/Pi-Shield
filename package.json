@@ -25,6 +25,7 @@
     "zod": "^3.24.3"
   },
   "devDependencies": {
+    "rimraf": "^5.0.1",
     "@cloudflare/vite-plugin": "^1.13.3",
     "@eslint/js": "9.25.1",
     "@types/cors": "^2.8.19",
@@ -47,7 +48,7 @@
     "wrangler": "^4.33.0"
   },
   "scripts": {
-    "build": "rm -rf dist && vite build && tsc --project tsconfig.server.json",
+    "build": "rimraf dist && vite build && tsc --project tsconfig.server.json",
     "start": "node dist/server/index.js",
     "prestart": "npm run build"
   }

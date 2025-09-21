@@ -1,11 +1,22 @@
 import { useState } from 'react';
-import { Upload, Image as ImageIcon, Send, AlertTriangle, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
-import type { AnalysisReport } from '@/shared/types';
+import { Upload, Video as VideoIcon, Send, AlertTriangle, CheckCircle, XCircle, Loader2, Info, Play } from 'lucide-react';
+import type { AnalysisReport } from '../../../../src/shared/types';
+import { fetchWithAuth } from '../../../../src/react-app/utils/api';
 
-export default function ImageAnalyzer() {
+export default function VideoAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [extractedText, setExtractedText] = useState('');
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  type VideoMetadata = {
+    duration?: string | number;
+    resolution?: string;
+    frameRate?: number | string;
+    format?: string;
+    codec?: string;
+    creationDate?: string;
+    [key: string]: unknown;
+  } | null;
+
+  const [videoMetadata, setVideoMetadata] = useState<VideoMetadata>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
   const [result, setResult] = useState<AnalysisReport | null>(null);
@@ -14,42 +25,42 @@ export default function ImageAnalyzer() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith('video/')) {
         setSelectedFile(file);
         
         // Create preview
         const reader = new FileReader();
         reader.onload = (e) => {
-          setImagePreview(e.target?.result as string);
+          setVideoPreview(e.target?.result as string);
         };
         reader.readAsDataURL(file);
         
-        setExtractedText('');
+        setVideoMetadata(null);
         setResult(null);
         setError(null);
       } else {
-        setError('Please select a valid image file (JPG, PNG, GIF, etc.)');
+        setError('Please select a valid video file (MP4, AVI, MOV, etc.)');
       }
     }
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-  const file: File | undefined = event.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) {
+    const file: File | undefined = event.dataTransfer.files[0];
+    if (file && file.type.startsWith('video/')) {
       setSelectedFile(file);
       
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+        setVideoPreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
       
-      setExtractedText('');
+      setVideoMetadata(null);
       setResult(null);
       setError(null);
     } else {
-      setError('Please drop a valid image file');
+      setError('Please drop a valid video file');
     }
   };
 
@@ -57,7 +68,7 @@ export default function ImageAnalyzer() {
     event.preventDefault();
   };
 
-  const extractText = async () => {
+  const extractMetadata = async () => {
     if (!selectedFile) return;
 
     setIsExtracting(true);
@@ -65,31 +76,31 @@ export default function ImageAnalyzer() {
 
     try {
       const formData = new FormData();
-      formData.append('image', selectedFile);
+      formData.append('video', selectedFile);
 
-      const response = await fetch('/api/extract-text', {
+      const response = await fetchWithAuth('/api/extract-video-metadata', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Text extraction failed');
+        throw new Error(errorData.error || 'Metadata extraction failed');
       }
 
       const data = await response.json();
-      setExtractedText(data.extractedText || '');
+      setVideoMetadata(data.metadata);
     } catch (err) {
-      console.error('Text extraction error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during text extraction');
+      console.error('Metadata extraction error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during metadata extraction');
     } finally {
       setIsExtracting(false);
     }
   };
 
-  const analyzeImage = async () => {
-    if (!extractedText.trim()) {
-      setError('Please extract text from the image first');
+  const analyzeVideo = async () => {
+    if (!videoMetadata) {
+      setError('Please extract video metadata first');
       return;
     }
 
@@ -98,14 +109,14 @@ export default function ImageAnalyzer() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/analyze-text', {
+      const response = await fetchWithAuth('/api/analyze-video', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content: extractedText,
-          contentType: 'image',
+          filename: selectedFile?.name,
+          metadata: videoMetadata,
         }),
       });
 
@@ -166,136 +177,178 @@ export default function ImageAnalyzer() {
     }
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   return (
-    <section id="image-analyzer" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+    <section id="video-analyzer" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 to-blue-50">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Image Detection
+          <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+            Video Analysis
           </h2>
           <p className="text-xl text-gray-600">
-            Upload images and use OCR technology to extract and analyze text for misleading content
+            Extract metadata and analyze video content to identify potential misinformation sources
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl shadow-xl p-8 border border-purple-200/50">
+        <div className="bg-white rounded-3xl shadow-xl p-8 border border-green-200/50">
           {/* File Upload Area */}
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="border-2 border-dashed border-purple-300 rounded-2xl p-8 mb-6 text-center hover:border-purple-400 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-green-300 rounded-2xl p-8 mb-6 text-center hover:border-green-400 transition-colors cursor-pointer"
           >
-            {!imagePreview ? (
+            {!videoPreview ? (
               <div>
-                <Upload className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                <Upload className="w-16 h-16 text-green-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Upload Image for Analysis
+                  Upload Video for Analysis
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Drag and drop an image here, or click to select a file
+                  Drag and drop a video here, or click to select a file
                 </p>
                 <input
                   type="file"
                   onChange={handleFileSelect}
-                  accept="image/*"
+                  accept="video/*"
                   className="hidden"
-                  id="image-upload"
+                  id="video-upload"
                 />
                 <label
-                  htmlFor="image-upload"
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all cursor-pointer"
+                  htmlFor="video-upload"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-xl font-medium hover:shadow-lg transform hover:scale-105 transition-all cursor-pointer"
                 >
-                  <ImageIcon className="w-5 h-5 mr-2" />
-                  Select Image
+                  <VideoIcon className="w-5 h-5 mr-2" />
+                  Select Video
                 </label>
                 <p className="text-sm text-gray-500 mt-2">
-                  Supports JPG, PNG, GIF, and other image formats
+                  Supports MP4, AVI, MOV, and other video formats
                 </p>
               </div>
             ) : (
               <div>
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="max-w-full max-h-64 mx-auto rounded-xl shadow-lg mb-4"
-                />
-                <p className="text-gray-700 font-medium mb-4">
+                <div className="relative max-w-md mx-auto">
+                  <video
+                    src={videoPreview}
+                    className="w-full rounded-xl shadow-lg mb-4"
+                    controls
+                    preload="metadata"
+                  />
+                  <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+                    <Play className="w-4 h-4 inline mr-1" />
+                    Video
+                  </div>
+                </div>
+                <p className="text-gray-700 font-medium mb-2">
                   {selectedFile?.name}
+                </p>
+                <p className="text-gray-500 text-sm mb-4">
+                  {selectedFile && formatFileSize(selectedFile.size)}
                 </p>
                 <button
                   onClick={() => {
                     setSelectedFile(null);
-                    setImagePreview(null);
-                    setExtractedText('');
+                    setVideoPreview(null);
+                    setVideoMetadata(null);
                     setResult(null);
                     setError(null);
                   }}
-                  className="text-purple-600 hover:text-purple-800 font-medium"
+                  className="text-green-600 hover:text-green-800 font-medium"
                 >
-                  Choose Different Image
+                  Choose Different Video
                 </button>
               </div>
             )}
           </div>
 
-          {/* Extract Text Button */}
+          {/* Extract Metadata Button */}
           {selectedFile && (
             <div className="mb-6">
               <button
-                onClick={extractText}
+                onClick={extractMetadata}
                 disabled={isExtracting}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-2xl font-semibold text-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
+                className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white py-4 rounded-2xl font-semibold text-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
               >
                 {isExtracting ? (
                   <span className="flex items-center justify-center">
                     <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                    Extracting Text from Image...
+                    Extracting Video Metadata...
                   </span>
                 ) : (
                   <span className="flex items-center justify-center">
-                    <Eye className="w-6 h-6 mr-3" />
-                    Extract Text with OCR
+                    <Info className="w-6 h-6 mr-3" />
+                    Extract Video Metadata
                   </span>
                 )}
               </button>
             </div>
           )}
 
-          {/* Extracted Text Display */}
-          {extractedText && (
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Extracted Text
-              </label>
-              <div className="bg-white p-4 border border-gray-300 rounded-2xl max-h-40 overflow-y-auto">
-                <pre className="text-gray-700 whitespace-pre-wrap font-sans text-sm">
-                  {extractedText}
-                </pre>
+          {/* Metadata Display */}
+          {videoMetadata && (
+            <div className="mb-6 bg-gradient-to-br from-blue-50 to-green-50 p-6 rounded-2xl border border-blue-200">
+              <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <Info className="w-6 h-6 mr-3 text-blue-600" />
+                Video Metadata
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Duration:</span>
+                    <span className="text-gray-800">{videoMetadata.duration || 'Unknown'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Resolution:</span>
+                    <span className="text-gray-800">{videoMetadata.resolution || 'Unknown'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Frame Rate:</span>
+                    <span className="text-gray-800">{videoMetadata.frameRate || 'Unknown'}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Format:</span>
+                    <span className="text-gray-800">{videoMetadata.format || 'Unknown'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Codec:</span>
+                    <span className="text-gray-800">{videoMetadata.codec || 'Unknown'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">File Size:</span>
+                    <span className="text-gray-800">{selectedFile && formatFileSize(selectedFile.size)}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm text-gray-500">
-                  {extractedText.length} characters extracted
-                </span>
-                {extractedText.length >= 10 && (
-                  <span className="text-sm text-green-600 font-medium">
-                    Ready for analysis
-                  </span>
-                )}
-              </div>
+              {videoMetadata.creationDate && (
+                <div className="mt-4 pt-4 border-t border-blue-200">
+                  <div className="flex justify-between">
+                    <span className="font-medium text-gray-600">Creation Date:</span>
+                    <span className="text-gray-800">{videoMetadata.creationDate}</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Analyze Button */}
-          {extractedText && (
+          {videoMetadata && (
             <button
-              onClick={analyzeImage}
-              disabled={isAnalyzing || extractedText.trim().length < 10}
+              onClick={analyzeVideo}
+              disabled={isAnalyzing}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-semibold text-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200 mb-6"
             >
               {isAnalyzing ? (
                 <span className="flex items-center justify-center">
                   <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                  Analyzing Extracted Text...
+                  Analyzing Video Content...
                 </span>
               ) : (
                 <span className="flex items-center justify-center">
@@ -349,7 +402,7 @@ export default function ImageAnalyzer() {
 
               {/* Analysis */}
               <div className="bg-white p-6 rounded-2xl border border-gray-200">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Image Content Analysis</h3>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Video Content Analysis</h3>
                 <p className="text-gray-700 leading-relaxed">{result.analysis}</p>
               </div>
 
@@ -379,7 +432,7 @@ export default function ImageAnalyzer() {
                 </h3>
                 <ul className="space-y-3">
                   {result.recommendations.map((recommendation: string, index: number) => (
-                    <li key={index} className="flex items-start">
+                      <li key={index} className="flex items-start">
                       <span className="text-blue-600 mr-2">✓</span>
                       <span className="text-blue-800">{recommendation}</span>
                     </li>

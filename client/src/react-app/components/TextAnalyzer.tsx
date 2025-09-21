@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Send, AlertTriangle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import type { AnalysisReport } from '@/shared/types';
+import type { AnalysisReport } from '../../../../src/shared/types';
 
 export default function TextAnalyzer() {
   const [content, setContent] = useState('');
@@ -104,7 +104,7 @@ export default function TextAnalyzer() {
               Content Type
             </label>
             <div className="flex flex-wrap gap-3">
-              {(['text', 'article', 'post', 'news'] as const).map((type) => (
+              {(['text', 'article', 'post', 'news'] as const).map((type: 'text'|'article'|'post'|'news') => (
                 <button
                   key={type}
                   onClick={() => setContentType(type)}
