@@ -11,9 +11,12 @@ const __dirname = path.dirname(__filename);
 // ✅ Point to client build output
 const clientBuildPath = path.join(__dirname, "../client/dist");
 
+console.log(`Serving client from: ${clientBuildPath}`);
+
 app.use(express.static(clientBuildPath));
 
-app.get("*", (req, res) => {
+// Use '/*' to avoid edge-cases with some path parsing implementations
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(clientBuildPath, "index.html"));
 });
 
