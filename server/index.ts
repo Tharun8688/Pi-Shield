@@ -26,7 +26,7 @@ console.log(`Serving client from: ${clientBuildPath}`);
 console.log(`Server will listen on port: ${PORT}`);
 
 // Enable CORS (frontend may be served separately in some environments)
-app.use(cors());
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 
 // Parse JSON bodies for API routes
 app.use(express.json());
