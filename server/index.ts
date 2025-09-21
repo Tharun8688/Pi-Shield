@@ -7,7 +7,7 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-import apiRoutes from './routes.js';
+import apiRoutes from './routes';
 
 app.use(apiRoutes);
 
