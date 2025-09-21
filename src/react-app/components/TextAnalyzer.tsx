@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Send, AlertTriangle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import type { AnalysisReport } from '@/shared/types';
+import { API_BASE_URL } from '@/react-app/config';
 
 export default function TextAnalyzer() {
   const [content, setContent] = useState('');
@@ -17,7 +18,7 @@ export default function TextAnalyzer() {
     setResult(null);
 
     try {
-      const response = await fetch('/api/analyze-text', {
+  const response = await fetch(`${API_BASE_URL}/api/analyze-text`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

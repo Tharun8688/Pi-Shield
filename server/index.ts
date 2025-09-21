@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import cors from "cors";
 import { fileURLToPath } from "url";
 const app = express();
 const PORT = process.env.PORT || 10001; // default to 10001 locally to avoid local port conflicts
@@ -23,6 +24,9 @@ if (!clientBuildPath) {
 
 console.log(`Serving client from: ${clientBuildPath}`);
 console.log(`Server will listen on port: ${PORT}`);
+
+// Enable CORS (frontend may be served separately in some environments)
+app.use(cors());
 
 // Parse JSON bodies for API routes
 app.use(express.json());
@@ -69,12 +73,53 @@ app.post('/api/analyze-video', (req, res) => {
   return res.json(mockReport);
 });
 
+// Minimal API: analyze-multimodal (accepts JSON or multipart/form-data)
+app.post('/api/analyze-multimodal', (req, res) => {
+  // If the client sends multipart/form-data (FormData), we won't parse files here in the mock;
+  // instead, we inspect the content-type and respond with a mocked report so the frontend can proceed.
+  const isFormData = req.is && req.is('multipart/form-data');
+
+  if (isFormData) {
+    const mockReport = {
+      credibilityScore: 70,
+      analysis: 'Mock multimodal analysis (received multipart/form-data).',
+      flags: [],
+      recommendations: ['Use validated sources', 'Check metadata when available'],
+      reasoning: 'This is a mock response for uploaded media (FormData).',
+      sources: [],
+    };
+    return res.json(mockReport);
+  }
+
+  // Otherwise expect JSON body with content / contentType
+  const { content, contentType } = req.body || {};
+  if ((!content || typeof content !== 'string') && !isFormData) {
+    return res.status(400).json({ error: 'Missing content (string) or multipart form-data' });
+  }
+
+  const mockReport = {
+    credibilityScore: 74,
+    analysis: `Mock multimodal analysis for content type ${contentType || 'unknown'}`,
+    flags: [],
+    recommendations: ['Cross-check with other sources'],
+    reasoning: 'Mocked multimodal response for development.',
+    sources: [],
+  };
+
+  return res.json(mockReport);
+});
+
+// If a request starts with /api and reached this point, return JSON 404 rather than serving HTML.
+app.use('/api', (req, res) => {
+  return res.status(404).json({ error: 'API route not found' });
+});
+
+// Serve static assets from the client build
 app.use(express.static(clientBuildPath));
 
-// Serve index.html for any request not handled by static middleware.
-// Using `app.use` without a path avoids path-to-regexp parsing issues in some environments.
+// Serve index.html for any non-API route (SPA routing)
 app.use((req, res) => {
-  res.sendFile(path.join(clientBuildPath, "index.html"));
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
 });
 
 app.listen(PORT, () => {
