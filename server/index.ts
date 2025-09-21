@@ -49,6 +49,26 @@ app.post('/api/analyze-text', (req, res) => {
   return res.json(mockReport);
 });
 
+// Minimal API: analyze-video (mock implementation)
+app.post('/api/analyze-video', (req, res) => {
+  const { videoUrl } = req.body || {};
+
+  if (!videoUrl || typeof videoUrl !== 'string') {
+    return res.status(400).json({ error: 'Missing videoUrl' });
+  }
+
+  const mockReport = {
+    credibilityScore: 65,
+    analysis: `Mock video analysis for ${videoUrl}`,
+    flags: ['Possible manipulated frames'],
+    recommendations: ['Check source metadata', 'Compare with other sources'],
+    reasoning: 'Mocked video analysis response for development.',
+    sources: [],
+  };
+
+  return res.json(mockReport);
+});
+
 app.use(express.static(clientBuildPath));
 
 // Serve index.html for any request not handled by static middleware.
