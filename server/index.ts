@@ -16,7 +16,9 @@ console.log(`Serving client from: ${clientBuildPath}`);
 app.use(express.static(clientBuildPath));
 
 // Use '/*' to avoid edge-cases with some path parsing implementations
-app.get(/.*/, (req, res) => {
+// Serve index.html for any request not handled by static middleware.
+// Using `app.use` without a path avoids path-to-regexp parsing issues in some environments.
+app.use((req, res) => {
   res.sendFile(path.join(clientBuildPath, "index.html"));
 });
 
