@@ -48,8 +48,7 @@
   },
   "scripts": {
     "build": "tsc --project tsconfig.server.json",
-    "start": "npm run build && node dist/server/index.js",
-    "dev": "ts-node server/index.ts",
-    "postinstall": "npm run build"
+    "start": "npm run build && node dist/index.js",
+    "dev": "ts-node server/index.ts"
   }
 }
