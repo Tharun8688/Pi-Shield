@@ -3,17 +3,18 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const app = express();
-const PORT = process.env.PORT || 8080; // Railway provides PORT
+const PORT = process.env.PORT || 10000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve React static files
-app.use(express.static(path.join(__dirname, "../dist")));
+// ✅ Point to client build output
+const clientBuildPath = path.join(__dirname, "../client/dist");
 
-// ✅ Fallback route (Express 5 compatible)
-app.get(/.*/, (_, res) => {
-  res.sendFile(path.join(__dirname, "../dist/index.html"));
+app.use(express.static(clientBuildPath));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(clientBuildPath, "index.html"));
 });
 
 app.listen(PORT, () => {

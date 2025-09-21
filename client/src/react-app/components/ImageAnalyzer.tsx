@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Upload, Image as ImageIcon, Send, AlertTriangle, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
-import type { AnalysisReport } from '@/shared/types';
+import type { AnalysisReport } from '../../../../src/shared/types';
 
 export default function ImageAnalyzer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -35,8 +35,8 @@ export default function ImageAnalyzer() {
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-  const file: File | undefined = event.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) {
+    const file: File | undefined = event.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
       setSelectedFile(file);
       
       const reader = new FileReader();
@@ -136,6 +136,7 @@ export default function ImageAnalyzer() {
     return <XCircle className="w-8 h-8 text-red-600" />;
   };
 
+  // Map numeric score to a Tailwind width class (explicit values so JIT includes them)
   const getWidthClass = (score: number) => {
     const bucket = Math.min(100, Math.max(0, Math.round(score / 10) * 10));
     switch (bucket) {

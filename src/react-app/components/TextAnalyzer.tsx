@@ -55,6 +55,36 @@ export default function TextAnalyzer() {
     return <XCircle className="w-8 h-8 text-red-600" />;
   };
 
+  const getWidthClass = (score: number) => {
+    const bucket = Math.min(100, Math.max(0, Math.round(score / 10) * 10));
+    switch (bucket) {
+      case 0:
+        return 'w-[0%]';
+      case 10:
+        return 'w-[10%]';
+      case 20:
+        return 'w-[20%]';
+      case 30:
+        return 'w-[30%]';
+      case 40:
+        return 'w-[40%]';
+      case 50:
+        return 'w-[50%]';
+      case 60:
+        return 'w-[60%]';
+      case 70:
+        return 'w-[70%]';
+      case 80:
+        return 'w-[80%]';
+      case 90:
+        return 'w-[90%]';
+      case 100:
+        return 'w-[100%]';
+      default:
+        return 'w-[0%]';
+    }
+  };
+
   return (
     <section id="analyzer" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-4xl mx-auto">
@@ -159,14 +189,15 @@ export default function TextAnalyzer() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
                   <div
-                    className={`h-3 rounded-full transition-all duration-1000 ${
+                    className={`h-3 rounded-full transition-all duration-1000 ${getWidthClass(
+                      result.credibilityScore
+                    )} ${
                       result.credibilityScore >= 80
                         ? 'bg-gradient-to-r from-green-500 to-green-600'
                         : result.credibilityScore >= 50
                         ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
                         : 'bg-gradient-to-r from-red-500 to-red-600'
                     }`}
-                    style={{ width: `${result.credibilityScore}%` }}
                   />
                 </div>
               </div>
@@ -185,7 +216,7 @@ export default function TextAnalyzer() {
                     Warning Flags
                   </h3>
                   <ul className="space-y-2">
-                    {result.flags.map((flag, index) => (
+                    {result.flags.map((flag: string, index: number) => (
                       <li key={index} className="flex items-start">
                         <span className="text-red-600 mr-2">•</span>
                         <span className="text-red-800">{flag}</span>
@@ -202,7 +233,7 @@ export default function TextAnalyzer() {
                   Verification Recommendations
                 </h3>
                 <ul className="space-y-3">
-                  {result.recommendations.map((recommendation, index) => (
+                  {result.recommendations.map((recommendation: string, index: number) => (
                     <li key={index} className="flex items-start">
                       <span className="text-blue-600 mr-2">✓</span>
                       <span className="text-blue-800">{recommendation}</span>
